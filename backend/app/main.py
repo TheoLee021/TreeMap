@@ -7,10 +7,10 @@ from .websocket import router as websocket_router
 
 app = FastAPI()
 
-# CORS 설정
+# CORS 설정 업데이트
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -20,7 +20,6 @@ app.add_middleware(
 @app.on_event("startup")
 async def init_db():
     async with engine.begin() as conn:
-        # await conn.run_sync(models.Base.metadata.drop_all)  # 개발 중에만 사용
         await conn.run_sync(models.Base.metadata.create_all)
 
 # 라우터 추가
