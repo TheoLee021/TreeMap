@@ -8,15 +8,21 @@
     "start": "next start"
   },
   "dependencies": {
+    "@react-leaflet/core": "1.0.2",
+    "axios": "^0.24.0",
+    "date-fns": "^2.25.0",
+    "leaflet": "1.7.1",
     "next": "12.3.4",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "leaflet": "1.7.1",
     "react-leaflet": "3.2.0",
-    "@react-leaflet/core": "1.0.2",
-    "@types/leaflet": "^1.7.5",
-    "axios": "^0.24.0",
-    "swr": "^1.0.1",
-    "date-fns": "^2.25.0"
+    "swr": "^1.0.1"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.16",
+    "@types/node": "22.10.7",
+    "@types/react": "19.0.7",
+    "@types/styled-jsx": "^3.4.4",
+    "typescript": "5.7.3"
   }
-} 
+}

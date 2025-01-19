@@ -1,8 +1,8 @@
 {
-  "index.js -> ../components/Map": {
-    "id": "index.js -> ../components/Map",
+  "index.tsx -> ../components/Map": {
+    "id": "index.tsx -> ../components/Map",
     "files": [
-      "static/chunks/components_Map_js.js"
+      "static/chunks/components_Map_tsx.js"
     ]
   }
 }
