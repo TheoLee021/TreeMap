@@ -60,10 +60,10 @@ export default function TreesPage() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diameter (cm)</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Crown Height (m)</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Crown Spread (m)</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Health</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Inspection</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Pruned</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contributors</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Inspection</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Health</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Pruned</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
                     </tr>
                   </thead>
@@ -81,14 +81,14 @@ export default function TreesPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {tree.crown_spread ? tree.crown_spread.toFixed(1) : '-'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tree.health_condition}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tree.contributors || '-'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {tree.last_inspection ? formatDate(tree.last_inspection) : '-'}
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tree.health_condition}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {tree.last_pruned ? formatDate(tree.last_pruned) : '-'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tree.contributors || '-'}</td>
                         <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{tree.notes || '-'}</td>
                       </tr>
                     ))}
