@@ -1,11 +1,14 @@
 import { format, parseISO } from 'date-fns';
 
-export const formatDate = (date: string) => {
+export const formatDate = (date: string | undefined | null) => {
   try {
+    if (!date) {
+      return 'Not available';
+    }
     return format(parseISO(date), 'yyyy-MM-dd');
   } catch (error) {
     console.error('Invalid date format:', error);
-    return date;
+    return 'Invalid date';
   }
 };
 

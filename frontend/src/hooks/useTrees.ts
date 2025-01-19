@@ -22,16 +22,28 @@ const fetcher = async (url: string) => {
     }
 
     // Validate each tree object
-    const validTrees = data.filter((item): item is Tree => {
+    const validTrees = data.map((item) => {
+      try {
+        const locationData = JSON.parse(item.location);
+        return {
+          ...item,
+          location: {
+            lat: locationData.coordinates[1],
+            lng: locationData.coordinates[0]
+          }
+        };
+      } catch (error) {
+        console.error('Failed to parse location data:', error);
+        return null;
+      }
+    }).filter((item): item is Tree => {
       const isValid = 
-        typeof item === 'object' &&
         item !== null &&
+        typeof item === 'object' &&
         typeof item.id === 'number' &&
         typeof item.species === 'string' &&
         typeof item.height === 'number' &&
-        typeof item.age === 'number' &&
         typeof item.health_condition === 'string' &&
-        typeof item.last_pruned === 'string' &&
         typeof item.location === 'object' &&
         item.location !== null &&
         typeof item.location.lat === 'number' &&

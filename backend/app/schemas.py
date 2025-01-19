@@ -1,8 +1,9 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, Field
 from datetime import datetime
 from typing import Optional
-from shapely.geometry import Point
+from shapely.geometry import Point, mapping
 import json
+from geoalchemy2.shape import to_shape
 
 class GeoJSON(BaseModel):
     type: str
@@ -10,27 +11,16 @@ class GeoJSON(BaseModel):
 
 class TreeBase(BaseModel):
     species: str
-    height: Optional[float]
-    diameter: Optional[float]
-    health_condition: Optional[str]
-    planted_date: Optional[datetime]
-    last_inspection: Optional[datetime]
-    notes: Optional[str]
-    latitude: float
-    longitude: float
+    height: Optional[float] = None
+    diameter: Optional[float] = None
+    health_condition: str
+    planted_date: Optional[datetime] = None
+    last_inspection: Optional[datetime] = None
+    notes: Optional[str] = None
 
 class TreeCreate(TreeBase):
-    @validator('latitude')
-    def validate_latitude(cls, v):
-        if not -90 <= v <= 90:
-            raise ValueError('Latitude must be between -90 and 90')
-        return v
-
-    @validator('longitude')
-    def validate_longitude(cls, v):
-        if not -180 <= v <= 180:
-            raise ValueError('Longitude must be between -180 and 180')
-        return v
+    latitude: float
+    longitude: float
 
 class TreeUpdate(BaseModel):
     species: Optional[str]
@@ -44,18 +34,27 @@ class TreeUpdate(BaseModel):
 
 class Tree(TreeBase):
     id: int
+    location: str
     created_at: datetime
     updated_at: datetime
-    location: Optional[GeoJSON]
+
+    @validator("location", pre=True)
+    def parse_location(cls, v):
+        if hasattr(v, "desc"):
+            point = to_shape(v)
+            return f"POINT({point.x} {point.y})"
+        return v
+
+    @classmethod
+    def from_orm(cls, obj):
+        # Convert PostGIS geometry to GeoJSON
+        if hasattr(obj, 'location') and obj.location is not None:
+            shape = to_shape(obj.location)
+            obj.location = json.dumps(mapping(shape))
+        return super().from_orm(obj)
 
     class Config:
         orm_mode = True
-
-    @validator('location', pre=True)
-    def parse_location(cls, v):
-        if isinstance(v, str):
-            return {
-                "type": "Point",
-                "coordinates": [float(x.strip()) for x in v.replace("POINT(", "").replace(")", "").split()]
-            }
-        return v 
+        json_encoders = {
+            datetime: lambda v: v.isoformat() if v else None
+        } 

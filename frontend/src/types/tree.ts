@@ -6,10 +6,12 @@ export interface TreeLocation {
 export interface Tree {
   id: number;
   species: string;
+  common_name?: string;
   height: number;
-  age: number;
+  diameter: number;
   health_condition: string;
   last_pruned: string;
+  notes?: string;
   location: TreeLocation;
   created_at: string;
   updated_at: string;

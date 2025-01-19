@@ -115,10 +115,18 @@ export default function MapComponent({ trees, onMarkerClick }: MapComponentProps
           <Popup>
             <div className="p-2">
               <h3 className="font-bold mb-2">{tree.species}</h3>
-              <p className="text-sm">Height: {tree.height}m</p>
-              <p className="text-sm">Age: {tree.age} years</p>
+              {tree.common_name && (
+                <p className="text-sm text-gray-600 mb-2">Common Name: {tree.common_name}</p>
+              )}
+              <p className="text-sm">Height: {tree.height.toFixed(1)}m</p>
+              <p className="text-sm">Diameter: {tree.diameter.toFixed(1)}cm</p>
               <p className="text-sm">Health: {tree.health_condition}</p>
-              <p className="text-sm">Last Pruned: {formatDate(tree.last_pruned)}</p>
+              {tree.last_pruned && (
+                <p className="text-sm">Last Pruned: {formatDate(tree.last_pruned)}</p>
+              )}
+              {/* {tree.notes && (
+                <p className="text-sm text-gray-600 mt-2">{tree.notes}</p>
+              )} */}
             </div>
           </Popup>
         </Marker>

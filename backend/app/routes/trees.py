@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from typing import List, Optional
 from .. import models, schemas
 from ..database import get_db
@@ -44,19 +44,32 @@ async def get_trees(
 
 @router.post("/", response_model=schemas.Tree)
 async def create_tree(tree: schemas.TreeCreate, db: AsyncSession = Depends(get_db)):
-    point = f"POINT({tree.longitude} {tree.latitude})"
+    # Create PostGIS POINT from latitude and longitude
+    location = f"POINT({tree.longitude} {tree.latitude})"
+    
     db_tree = models.Tree(
-        **tree.dict(exclude={'latitude', 'longitude'}),
-        location=point
+        species=tree.species,
+        height=tree.height,
+        diameter=tree.diameter,
+        health_condition=tree.health_condition,
+        planted_date=tree.planted_date,
+        last_inspection=tree.last_inspection,
+        notes=tree.notes,
+        location=location
     )
+    
     db.add(db_tree)
     await db.commit()
     await db.refresh(db_tree)
     
-    # WebSocket을 통해 새 나무 생성 알림
-    await manager.broadcast(
-        json.dumps({"action": "create", "tree": schemas.Tree.from_orm(db_tree).dict()})
-    )
+    # Notify WebSocket clients
+    tree_data = {
+        "id": db_tree.id,
+        "species": db_tree.species,
+        "location": json.loads(await db.scalar(select([ST_AsGeoJSON(db_tree.location)])))
+    }
+    await manager.broadcast(json.dumps({"type": "tree_added", "data": tree_data}))
+    
     return db_tree
 
 @router.get("/{tree_id}", response_model=schemas.Tree)
