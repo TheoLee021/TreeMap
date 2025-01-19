@@ -5,9 +5,8 @@ from typing import List, Optional
 from .. import models, schemas
 from ..database import get_db
 from ..websocket import manager
-from geoalchemy2.functions import ST_AsGeoJSON, ST_DWithin, ST_MakePoint
-from sqlalchemy import func
 import json
+import math
 
 router = APIRouter(
     prefix="/trees",
@@ -30,12 +29,14 @@ async def get_trees(
         query = query.where(models.Tree.species.ilike(f"%{species}%"))
     
     if all(v is not None for v in [lat, lon, radius]):
-        point = func.ST_SetSRID(func.ST_MakePoint(lon, lat), 4326)
-        query = query.where(ST_DWithin(
-            models.Tree.location,
-            point,
-            radius / 111320  # 미터를 대략적인 도 단위로 변환
-        ))
+        # 위도/경도 기반 거리 계산 (Haversine formula)
+        radius_degrees = radius / 111320  # 미터를 대략적인 도 단위로 변환
+        query = query.where(
+            func.sqrt(
+                func.pow(models.Tree.latitude - lat, 2) +
+                func.pow(models.Tree.longitude - lon, 2)
+            ) <= radius_degrees
+        )
     
     query = query.offset(skip).limit(limit)
     result = await db.execute(query)
@@ -44,18 +45,21 @@ async def get_trees(
 
 @router.post("/", response_model=schemas.Tree)
 async def create_tree(tree: schemas.TreeCreate, db: AsyncSession = Depends(get_db)):
-    # Create PostGIS POINT from latitude and longitude
-    location = f"POINT({tree.longitude} {tree.latitude})"
-    
     db_tree = models.Tree(
+        tag_number=tree.tag_number,
+        common_name=tree.common_name,
         species=tree.species,
+        latitude=tree.latitude,
+        longitude=tree.longitude,
         height=tree.height,
         diameter=tree.diameter,
-        health_condition=tree.health_condition,
-        planted_date=tree.planted_date,
+        crown_height=tree.crown_height,
+        crown_spread=tree.crown_spread,
+        contributors=tree.contributors,
         last_inspection=tree.last_inspection,
+        health_condition=tree.health_condition,
+        last_pruned=tree.last_pruned,
         notes=tree.notes,
-        location=location
     )
     
     db.add(db_tree)
@@ -66,7 +70,8 @@ async def create_tree(tree: schemas.TreeCreate, db: AsyncSession = Depends(get_d
     tree_data = {
         "id": db_tree.id,
         "species": db_tree.species,
-        "location": json.loads(await db.scalar(select([ST_AsGeoJSON(db_tree.location)])))
+        "latitude": db_tree.latitude,
+        "longitude": db_tree.longitude
     }
     await manager.broadcast(json.dumps({"type": "tree_added", "data": tree_data}))
     
@@ -90,12 +95,6 @@ async def update_tree(
         raise HTTPException(status_code=404, detail="Tree not found")
     
     update_data = tree_update.dict(exclude_unset=True)
-    
-    if 'latitude' in update_data or 'longitude' in update_data:
-        lat = update_data.pop('latitude', None) or tree.latitude
-        lon = update_data.pop('longitude', None) or tree.longitude
-        point = f"POINT({lon} {lat})"
-        update_data['location'] = point
     
     for key, value in update_data.items():
         setattr(tree, key, value)

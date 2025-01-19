@@ -1,70 +1,84 @@
 import csv
-import requests
-from datetime import datetime
-import re
 import sys
+import requests
+import re
+from datetime import datetime
 
 def convert_height(height_str):
-    # Convert '31'-45'' format to meters (taking average)
+    # Example: "31'-45'" -> average in meters
     match = re.match(r"(\d+)'-(\d+)'", height_str)
     if match:
-        min_height, max_height = map(int, match.groups())
+        min_height = float(match.group(1))
+        max_height = float(match.group(2))
         avg_feet = (min_height + max_height) / 2
-        return round(avg_feet * 0.3048, 2)  # Convert to meters
+        return avg_feet * 0.3048  # Convert to meters
     return None
 
 def convert_diameter(diameter_str):
-    # Convert '8"' format to centimeters
+    # Example: '8"' -> centimeters
     match = re.match(r'(\d+)"', diameter_str)
     if match:
-        inches = int(match.group(1))
-        return round(inches * 2.54, 2)  # Convert to centimeters
+        inches = float(match.group(1))
+        return inches * 2.54  # Convert to centimeters
     return None
 
 def parse_health(health_str):
-    # Convert '40% - Poor' format to standardized format
-    match = re.match(r'(\d+)% - (\w+)', health_str)
-    if match:
-        return match.group(2).lower()
-    return 'unknown'
+    # Example: "40% - Poor" -> "poor"
+    if not health_str:
+        return "unknown"
+    if "-" in health_str:
+        return health_str.split("-")[1].strip().lower()
+    return health_str.lower()
 
 def parse_date(date_str):
-    # Convert MM/DD/YYYY to ISO format
+    if not date_str:
+        return None
     try:
         return datetime.strptime(date_str, '%m/%d/%Y').isoformat()
     except:
         return None
 
-def import_trees(csv_path, api_url='http://localhost:8000/trees'):
-    print(f"Importing trees from {csv_path}")
-    with open(csv_path, 'r') as file:
-        reader = csv.DictReader(file)
+def import_trees(csv_file):
+    with open(csv_file, 'r') as f:
+        reader = csv.DictReader(f)
         for row in reader:
             try:
-                tree_data = {
-                    'species': row['BOTANICAL NAME'],
-                    'common_name': row['COMMON NAME'],
-                    'height': convert_height(row['Height']),
-                    'diameter': convert_diameter(row['Diameter']),
-                    'health_condition': parse_health(row['Health']),
-                    'last_pruned': parse_date(row['Lastest Update']),
-                    'latitude': float(row['Latitude']),
-                    'longitude': float(row['Longitude']),
-                    'notes': row['Note'],
-                    'age': 0  # Placeholder as age is not in CSV
-                }
+                lat = float(row.get('Latitude', '').strip())
+                lon = float(row.get('Longitude', '').strip())
                 
-                response = requests.post(api_url, json=tree_data)
+                if not lat or not lon:
+                    print(f"Skipping row with missing coordinates: {row}")
+                    continue
+
+                tree_data = {
+                    'tag_number': row.get('Tag #', '').strip(),
+                    'common_name': row.get('COMMON NAME', '').strip(),
+                    'species': row.get('BOTANICAL NAME', '').strip(),
+                    'height': convert_height(row.get('Height', '')),
+                    'diameter': convert_diameter(row.get('Diameter', '')),
+                    'health_condition': parse_health(row.get('Health', '')),
+                    'last_pruned': parse_date(row.get('Last Pruned')),
+                    'note': row.get('Note', '').strip(),
+                    'latitude': lat,
+                    'longitude': lon
+                }
+
+                # Remove None values
+                tree_data = {k: v for k, v in tree_data.items() if v is not None}
+
+                response = requests.post('http://localhost:8000/trees', json=tree_data)
                 if response.status_code == 200:
-                    print(f"Successfully imported tree {row['Tag #']}")
+                    print(f"Successfully imported tree {tree_data['tag_number']}")
                 else:
-                    print(f"Failed to import tree {row['Tag #']}: {response.text}")
+                    print(f"Error importing tree {tree_data['tag_number']}: {response.text}")
+
             except Exception as e:
-                print(f"Error processing tree {row['Tag #']}: {str(e)}")
+                print(f"Error processing row: {row}")
+                print(f"Error: {str(e)}")
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        csv_path = sys.argv[1]
-    else:
-        csv_path = '../TreeDataset_DeAnzaCollege.csv'
-    import_trees(csv_path) 
+    if len(sys.argv) != 2:
+        print("Usage: python import_trees.py <csv_file>")
+        sys.exit(1)
+    
+    import_trees(sys.argv[1])

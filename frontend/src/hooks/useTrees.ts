@@ -1,6 +1,7 @@
 import useSWR from 'swr';
 import api from '@/lib/api';
 import type { Tree } from '@/types/tree';
+import { AxiosError } from 'axios';
 
 const fetcher = async (url: string) => {
   try {
@@ -24,12 +25,11 @@ const fetcher = async (url: string) => {
     // Validate each tree object
     const validTrees = data.map((item) => {
       try {
-        const locationData = JSON.parse(item.location);
         return {
           ...item,
           location: {
-            lat: locationData.coordinates[1],
-            lng: locationData.coordinates[0]
+            lat: item.latitude,
+            lon: item.longitude
           }
         };
       } catch (error) {
@@ -47,7 +47,7 @@ const fetcher = async (url: string) => {
         typeof item.location === 'object' &&
         item.location !== null &&
         typeof item.location.lat === 'number' &&
-        typeof item.location.lng === 'number';
+        typeof item.location.lon === 'number';
 
       if (!isValid) {
         console.error('Invalid tree object:', item);
@@ -58,11 +58,11 @@ const fetcher = async (url: string) => {
     console.log('Validated trees:', validTrees);
     return validTrees;
   } catch (error: unknown) {
-    if (error instanceof Error) {
+    if (error instanceof AxiosError) {
       console.error('API Error:', {
         name: error.name,
         message: error.message,
-        response: (error as any).response
+        response: error.response?.data
       });
     } else {
       console.error('Unknown API Error:', error);

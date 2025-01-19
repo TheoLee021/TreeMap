@@ -63,9 +63,9 @@ export default function MapComponent({ trees, onMarkerClick }: MapComponentProps
       tree.location &&
       typeof tree.location === 'object' &&
       'lat' in tree.location &&
-      'lng' in tree.location &&
+      'lon' in tree.location &&
       typeof tree.location.lat === 'number' &&
-      typeof tree.location.lng === 'number';
+      typeof tree.location.lon === 'number';
 
     if (!isValid) {
       console.error('Invalid tree object:', tree);
@@ -106,7 +106,7 @@ export default function MapComponent({ trees, onMarkerClick }: MapComponentProps
       {validTrees.map((tree) => (
         <Marker
           key={tree.id}
-          position={[tree.location.lat, tree.location.lng]}
+          position={[tree.location.lat, tree.location.lon]}
           icon={icon}
           eventHandlers={{
             click: () => onMarkerClick?.(tree)
@@ -121,6 +121,9 @@ export default function MapComponent({ trees, onMarkerClick }: MapComponentProps
               <p className="text-sm">Height: {tree.height.toFixed(1)}m</p>
               <p className="text-sm">Diameter: {tree.diameter.toFixed(1)}cm</p>
               <p className="text-sm">Health: {tree.health_condition}</p>
+              {tree.last_inspection && (
+                <p className="text-sm">Last Inspection: {formatDate(tree.last_inspection)}</p>
+              )}
               {tree.last_pruned && (
                 <p className="text-sm">Last Pruned: {formatDate(tree.last_pruned)}</p>
               )}
