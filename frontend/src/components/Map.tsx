@@ -20,7 +20,7 @@ interface MapComponentProps {
 
 export default function MapComponent({ trees, onMarkerClick }: MapComponentProps) {
   // Default center coordinates (can be adjusted based on your needs)
-  const defaultCenter: LatLngExpression = [37.5665, 126.9780]; // Seoul coordinates
+  const defaultCenter: LatLngExpression = [37.319297067686186, -122.04499463557032];
 
   // Client-side only rendering for Leaflet
   const [isClient, setIsClient] = useState(false);
@@ -80,7 +80,7 @@ export default function MapComponent({ trees, onMarkerClick }: MapComponentProps
     return (
       <MapContainer
         center={defaultCenter}
-        zoom={13}
+        zoom={17}
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
       >
@@ -95,7 +95,7 @@ export default function MapComponent({ trees, onMarkerClick }: MapComponentProps
   return (
     <MapContainer
       center={defaultCenter}
-      zoom={13}
+      zoom={17}
       style={{ height: '100%', width: '100%' }}
       scrollWheelZoom={true}
     >
