@@ -13,8 +13,7 @@ export default function TreesPage() {
 
   const filteredTrees = trees.filter(tree => 
     tree.botanical_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    tree.common_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    tree.tag_number.toLowerCase().includes(searchTerm.toLowerCase())
+    tree.common_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSort = (field: string) => {
@@ -113,17 +112,18 @@ export default function TreesPage() {
                         Crown Spread (m) {renderSortIcon('crown_spread')}
                       </th>
                       <th 
-                        onClick={() => handleSort('contributors')}
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                      >
-                        Contributors {renderSortIcon('contributors')}
-                      </th>
-                      <th 
                         onClick={() => handleSort('last_update')}
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                       >
                         Last Update {renderSortIcon('last_update')}
                       </th>
+                      <th 
+                        onClick={() => handleSort('contributors')}
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                      >
+                        Contributors {renderSortIcon('contributors')}
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
                       <th 
                         onClick={() => handleSort('last_inspection')}
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
@@ -136,7 +136,6 @@ export default function TreesPage() {
                       >
                         Health {renderSortIcon('health')}
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expert Notes</th>
                     </tr>
                   </thead>
@@ -158,15 +157,15 @@ export default function TreesPage() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {tree.crown_spread ? tree.crown_spread.toFixed(1) : '-'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tree.contributors || '-'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {tree.last_update ? formatDate(tree.last_update) : '-'}
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tree.contributors || '-'}</td>
+                        <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{tree.notes || '-'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {tree.last_inspection ? formatDate(tree.last_inspection) : '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tree.health || '-'}</td>
-                        <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{tree.notes || '-'}</td>
                         <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{tree.expert_notes || '-'}</td>
                       </tr>
                     ))}
