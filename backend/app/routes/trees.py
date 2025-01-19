@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, Integer
 from typing import List, Optional
 from .. import models, schemas
 from ..database import get_db
@@ -17,16 +17,18 @@ router = APIRouter(
 async def get_trees(
     skip: int = 0,
     limit: int = 100,
-    species: Optional[str] = None,
+    botanical_name: Optional[str] = None,
     lat: Optional[float] = Query(None, ge=-90, le=90),
     lon: Optional[float] = Query(None, ge=-180, le=180),
     radius: Optional[float] = Query(None, gt=0),  # 미터 단위
+    sort_by: Optional[str] = Query(None, description="정렬할 필드"),
+    order: Optional[str] = Query("asc", description="정렬 순서 (asc 또는 desc)"),
     db: AsyncSession = Depends(get_db)
 ):
     query = select(models.Tree)
     
-    if species:
-        query = query.where(models.Tree.species.ilike(f"%{species}%"))
+    if botanical_name:
+        query = query.where(models.Tree.botanical_name.ilike(f"%{botanical_name}%"))
     
     if all(v is not None for v in [lat, lon, radius]):
         # 위도/경도 기반 거리 계산 (Haversine formula)
@@ -38,6 +40,12 @@ async def get_trees(
             ) <= radius_degrees
         )
     
+    # 정렬 적용
+    if sort_by:
+        column = getattr(models.Tree, sort_by, None)
+        if column is not None:
+            query = query.order_by(column.desc() if order == "desc" else column.asc())
+    
     query = query.offset(skip).limit(limit)
     result = await db.execute(query)
     trees = result.scalars().all()
@@ -48,32 +56,33 @@ async def create_tree(tree: schemas.TreeCreate, db: AsyncSession = Depends(get_d
     db_tree = models.Tree(
         tag_number=tree.tag_number,
         common_name=tree.common_name,
-        species=tree.species,
+        botanical_name=tree.botanical_name,
         latitude=tree.latitude,
         longitude=tree.longitude,
         height=tree.height,
         diameter=tree.diameter,
         crown_height=tree.crown_height,
         crown_spread=tree.crown_spread,
+        last_update=tree.last_update,
         contributors=tree.contributors,
-        last_inspection=tree.last_inspection,
-        health_condition=tree.health_condition,
-        last_pruned=tree.last_pruned,
         notes=tree.notes,
+        last_inspection=tree.last_inspection,
+        health=tree.health,
+        expert_notes=tree.expert_notes
     )
-    
     db.add(db_tree)
     await db.commit()
     await db.refresh(db_tree)
     
-    # Notify WebSocket clients
-    tree_data = {
-        "id": db_tree.id,
-        "species": db_tree.species,
-        "latitude": db_tree.latitude,
-        "longitude": db_tree.longitude
-    }
-    await manager.broadcast(json.dumps({"type": "tree_added", "data": tree_data}))
+    # Notify connected clients
+    await manager.broadcast(json.dumps({
+        "type": "tree_created",
+        "data": {
+            "id": db_tree.id,
+            "latitude": db_tree.latitude,
+            "longitude": db_tree.longitude
+        }
+    }))
     
     return db_tree
 
@@ -127,9 +136,9 @@ async def delete_tree(tree_id: int, db: AsyncSession = Depends(get_db)):
 async def get_species_stats(db: AsyncSession = Depends(get_db)):
     stats = await db.execute(
         select(
-            models.Tree.species,
+            models.Tree.botanical_name,
             func.count(models.Tree.id).label('count')
-        ).group_by(models.Tree.species)
+        ).group_by(models.Tree.botanical_name)
     )
     
     return {species: count for species, count in stats.fetchall()} 

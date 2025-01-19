@@ -1,7 +1,6 @@
 import useSWR from 'swr';
 import api from '@/lib/api';
 import type { Tree } from '@/types/tree';
-import { AxiosError } from 'axios';
 
 const fetcher = async (url: string) => {
   try {
@@ -41,54 +40,61 @@ const fetcher = async (url: string) => {
         item !== null &&
         typeof item === 'object' &&
         typeof item.id === 'number' &&
-        typeof item.species === 'string' &&
-        typeof item.height === 'number' &&
-        typeof item.health_condition === 'string' &&
+        typeof item.tag_number === 'number' &&
+        typeof item.common_name === 'string' &&
+        typeof item.botanical_name === 'string' &&
+        typeof item.latitude === 'number' &&
+        typeof item.longitude === 'number' &&
         typeof item.location === 'object' &&
         item.location !== null &&
         typeof item.location.lat === 'number' &&
-        typeof item.location.lon === 'number';
+        typeof item.location.lon === 'number' &&
+        (!item.height || typeof item.height === 'number') &&
+        (!item.diameter || typeof item.diameter === 'number') &&
+        (!item.crown_height || typeof item.crown_height === 'number') &&
+        (!item.crown_spread || typeof item.crown_spread === 'number') &&
+        (!item.last_update || typeof item.last_update === 'string') &&
+        (!item.contributors || typeof item.contributors === 'string') &&
+        (!item.notes || typeof item.notes === 'string') &&
+        (!item.last_inspection || typeof item.last_inspection === 'string') &&
+        (!item.health || typeof item.health === 'string') &&
+        (!item.expert_notes || typeof item.expert_notes === 'string');
 
       if (!isValid) {
-        console.error('Invalid tree object:', item);
+        console.error('Invalid tree data:', item);
+        // Log specific validation failures for debugging
+        if (item) {
+          console.error('Validation failures:', {
+            id: typeof item.id !== 'number',
+            tag_number: typeof item.tag_number !== 'number',
+            common_name: typeof item.common_name !== 'string',
+            botanical_name: typeof item.botanical_name !== 'string',
+            latitude: typeof item.latitude !== 'number',
+            longitude: typeof item.longitude !== 'number',
+            location: !item.location || typeof item.location !== 'object',
+            location_lat: !item.location?.lat || typeof item.location?.lat !== 'number',
+            location_lon: !item.location?.lon || typeof item.location?.lon !== 'number'
+          });
+        }
       }
       return isValid;
     });
 
-    console.log('Validated trees:', validTrees);
     return validTrees;
-  } catch (error: unknown) {
-    if (error instanceof AxiosError) {
-      console.error('API Error:', {
-        name: error.name,
-        message: error.message,
-        response: error.response?.data
-      });
-    } else {
-      console.error('Unknown API Error:', error);
-    }
-    return []; // Return empty array instead of throwing
+  } catch (error) {
+    console.error('Failed to fetch trees:', error);
+    throw error;
   }
 };
 
-export function useTrees() {
-  const { data, error, isLoading, mutate } = useSWR<Tree[]>('/trees', fetcher, {
-    onSuccess: (data) => console.log('SWR Success:', data),
-    onError: (error) => console.error('SWR Error:', error),
-    fallbackData: [] // Provide fallback data
-  });
+export function useTrees(sortBy?: string | null, sortOrder: 'asc' | 'desc' = 'asc') {
+  const { data, error, isLoading, mutate } = useSWR<Tree[]>(
+    sortBy ? `/trees?sort_by=${sortBy}&order=${sortOrder}` : '/trees',
+    fetcher
+  );
 
-  console.log('useTrees hook state:', {
-    data,
-    error,
-    isLoading
-  });
-
-  // Ensure we always return an array, even if data is undefined
-  const trees = Array.isArray(data) ? data : [];
-  
   return {
-    trees,
+    trees: data || [],
     isLoading,
     isError: error,
     mutate

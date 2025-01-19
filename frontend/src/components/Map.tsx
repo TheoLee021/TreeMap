@@ -114,22 +114,30 @@ export default function MapComponent({ trees, onMarkerClick }: MapComponentProps
         >
           <Popup>
             <div className="p-2">
-              <h3 className="font-bold mb-2">{tree.species}</h3>
-              {tree.common_name && (
-                <p className="text-sm text-gray-600 mb-2">Common Name: {tree.common_name}</p>
+              <h3 className="font-bold mb-2">{tree.botanical_name}</h3>
+              <p className="text-sm text-gray-600 mb-2">Common Name: {tree.common_name}</p>
+              <p className="text-sm text-gray-600 mb-2">Tag #: {tree.tag_number}</p>
+              {tree.height && (
+                <p className="text-sm">Height: {tree.height.toFixed(1)}m</p>
               )}
-              <p className="text-sm">Height: {tree.height.toFixed(1)}m</p>
-              <p className="text-sm">Diameter: {tree.diameter.toFixed(1)}cm</p>
-              <p className="text-sm">Health: {tree.health_condition}</p>
+              {tree.diameter && (
+                <p className="text-sm">Diameter: {tree.diameter.toFixed(1)}cm</p>
+              )}
+              {tree.health && (
+                <p className="text-sm">Health: {tree.health}</p>
+              )}
+              {tree.last_update && (
+                <p className="text-sm">Last Update: {formatDate(tree.last_update)}</p>
+              )}
               {tree.last_inspection && (
                 <p className="text-sm">Last Inspection: {formatDate(tree.last_inspection)}</p>
               )}
-              {tree.last_pruned && (
-                <p className="text-sm">Last Pruned: {formatDate(tree.last_pruned)}</p>
+              {tree.notes && (
+                <p className="text-sm text-gray-600 mt-2">Notes: {tree.notes}</p>
               )}
-              {/* {tree.notes && (
-                <p className="text-sm text-gray-600 mt-2">{tree.notes}</p>
-              )} */}
+              {tree.expert_notes && (
+                <p className="text-sm text-gray-600 mt-2">Expert Notes: {tree.expert_notes}</p>
+              )}
             </div>
           </Popup>
         </Marker>

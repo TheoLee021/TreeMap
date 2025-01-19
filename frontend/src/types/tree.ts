@@ -5,18 +5,19 @@ export interface TreeLocation {
 
 export interface Tree {
   id: number;
-  tag_number?: string;
-  species: string;
-  common_name?: string;
-  height: number;
-  diameter: number;
+  tag_number: number;
+  common_name: string;
+  botanical_name: string;
+  height?: number;
+  diameter?: number;
   crown_height?: number;
   crown_spread?: number;
-  health_condition: string;
-  last_inspection?: string;
-  last_pruned?: string;
+  last_update?: string;
   contributors?: string;
   notes?: string;
+  last_inspection?: string;
+  health?: string;
+  expert_notes?: string;
   latitude: number;
   longitude: number;
   location: TreeLocation;
@@ -25,31 +26,35 @@ export interface Tree {
 }
 
 export interface TreeCreate {
-  species: string;
-  common_name?: string;
-  height: number;
-  diameter: number;
-  crown_height?: number;
-  crown_spread?: number;
-  health_condition: string;
-  last_inspection?: string;
-  last_pruned?: string;
-  contributors?: string;
-  notes?: string;
-  location: TreeLocation;
-}
-
-export interface TreeUpdate {
-  species?: string;
-  common_name?: string;
+  tag_number: number;
+  common_name: string;
+  botanical_name: string;
   height?: number;
   diameter?: number;
   crown_height?: number;
   crown_spread?: number;
-  health_condition?: string;
-  last_inspection?: string;
-  last_pruned?: string;
+  last_update?: string;
   contributors?: string;
   notes?: string;
+  last_inspection?: string;
+  health?: string;
+  expert_notes?: string;
+  location: TreeLocation;
+}
+
+export interface TreeUpdate {
+  tag_number?: number;
+  common_name?: string;
+  botanical_name?: string;
+  height?: number;
+  diameter?: number;
+  crown_height?: number;
+  crown_spread?: number;
+  last_update?: string;
+  contributors?: string;
+  notes?: string;
+  last_inspection?: string;
+  health?: string;
+  expert_notes?: string;
   location?: TreeLocation;
 } 

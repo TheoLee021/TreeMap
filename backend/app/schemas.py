@@ -10,30 +10,36 @@ class GeoJSON(BaseModel):
     coordinates: list
 
 class TreeBase(BaseModel):
-    tag_number: Optional[str] = None
+    tag_number: Optional[int] = None
     common_name: Optional[str] = None
-    species: str
+    botanical_name: str
     height: Optional[float] = None
     diameter: Optional[float] = None
     crown_height: Optional[float] = None
     crown_spread: Optional[float] = None
+    last_update: Optional[datetime] = None
     contributors: Optional[str] = None
-    last_inspection: Optional[datetime] = None
-    health_condition: str
-    last_pruned: Optional[datetime] = None
     notes: Optional[str] = None
+    last_inspection: Optional[datetime] = None
+    health: Optional[str] = None
+    expert_notes: Optional[str] = None
 
 class TreeCreate(TreeBase):
     latitude: float = Field(..., ge=-90, le=90)
     longitude: float = Field(..., ge=-180, le=180)
 
 class TreeUpdate(BaseModel):
-    species: Optional[str]
-    height: Optional[float]
-    diameter: Optional[float]
-    health_condition: Optional[str]
-    last_inspection: Optional[datetime]
-    notes: Optional[str]
+    botanical_name: Optional[str] = None
+    height: Optional[float] = None
+    diameter: Optional[float] = None
+    crown_height: Optional[float] = None
+    crown_spread: Optional[float] = None
+    last_update: Optional[datetime] = None
+    contributors: Optional[str] = None
+    notes: Optional[str] = None
+    last_inspection: Optional[datetime] = None
+    health: Optional[str] = None
+    expert_notes: Optional[str] = None
     latitude: Optional[float] = Field(None, ge=-90, le=90)
     longitude: Optional[float] = Field(None, ge=-180, le=180)
 
