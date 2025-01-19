@@ -1,22 +1,20 @@
-FROM node:20-slim
+# Base image
+FROM node:20-alpine
 
+# Set working directory
 WORKDIR /app
 
-# 필요한 시스템 패키지 설치
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    libc6 \
-    libstdc++6 \
-    && rm -rf /var/lib/apt/lists/*
-
+# Copy package files
 COPY package*.json ./
-RUN npm install -g next && \
-    npm install
 
-# public 폴더와 그 내용물을 복사
-COPY public ./public
+# Install dependencies
+RUN npm install
+
+# Copy project files
 COPY . .
 
+# Expose port
 EXPOSE 3000
 
+# Start development server
 CMD ["npm", "run", "dev"] 
