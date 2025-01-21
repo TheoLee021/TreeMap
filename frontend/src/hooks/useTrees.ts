@@ -89,7 +89,7 @@ const fetcher = async (url: string) => {
 
 export function useTrees(sortBy?: string | null, sortOrder: 'asc' | 'desc' = 'asc') {
   const { data, error, isLoading, mutate } = useSWR<Tree[]>(
-    sortBy ? `/api/trees?sort_by=${sortBy}&order=${sortOrder}` : '/api/trees',
+    sortBy ? `/trees?sort_by=${sortBy}&order=${sortOrder}` : '/trees',
     fetcher
   );
 

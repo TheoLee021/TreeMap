@@ -12,8 +12,9 @@ class GeoJSON(BaseModel):
     coordinates: list
 
 class TreeBase(BaseModel):
-    tag_number: Optional[int] = None
-    common_name: Optional[str] = None
+    tag_number: int
+    tag_suffix: Optional[str] = None
+    common_name: str
     botanical_name: str
     height: Optional[float] = None
     diameter: Optional[float] = None
@@ -31,6 +32,9 @@ class TreeCreate(TreeBase):
     longitude: float = Field(..., ge=-180, le=180)
 
 class TreeUpdate(BaseModel):
+    tag_number: Optional[int] = None
+    tag_suffix: Optional[str] = None
+    common_name: Optional[str] = None
     botanical_name: Optional[str] = None
     height: Optional[float] = None
     diameter: Optional[float] = None
@@ -51,9 +55,10 @@ class Tree(TreeBase):
     longitude: float
     created_at: datetime
     updated_at: datetime
+    display_tag: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
         json_encoders = {
             datetime: lambda v: v.isoformat() if v else None
         }

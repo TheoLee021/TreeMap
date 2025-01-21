@@ -17,15 +17,13 @@ export default function TreesManagement() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   
-  const { data, error, isLoading } = useSWR<Tree[]>(
-    `/api/trees/?skip=${(page - 1) * pageSize}&limit=${pageSize}`,
+  const { data, error, isLoading } = useSWR<{ items: Tree[] }>(
+    `/trees/?skip=${(page - 1) * pageSize}&limit=${pageSize}`,
     api.get
   );
 
   if (error) return <div>Failed to load trees</div>;
   if (isLoading) return <div>Loading...</div>;
-
-  const trees = Array.isArray(data) ? data : [];
 
   return (
     <div className="space-y-6">
@@ -65,7 +63,7 @@ export default function TreesManagement() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {trees.map((tree) => (
+            {data?.items.map((tree) => (
               <tr key={tree.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {tree.tag_number}
@@ -113,7 +111,7 @@ export default function TreesManagement() {
         </button>
         <button
           className="px-4 py-2 border rounded-md disabled:opacity-50"
-          disabled={!trees.length}
+          disabled={!data?.items.length}
           onClick={() => setPage(page + 1)}
         >
           Next
