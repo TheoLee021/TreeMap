@@ -1,10 +1,4 @@
-"""${message}
-
-Revision ID: ${up_revision}
-Revises: ${down_revision | comma,n}
-Create Date: ${create_date}
-
-"""
+"""Generic single-database configuration."""
 from alembic import op
 import sqlalchemy as sa
 ${imports if imports else ""}
@@ -21,4 +15,4 @@ def upgrade():
 
 
 def downgrade():
-    ${downgrades if downgrades else "pass"}
+    ${downgrades if downgrades else "pass"} 

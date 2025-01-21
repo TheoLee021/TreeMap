@@ -1,7 +1,7 @@
-import NextAuth from 'next-auth';
+import NextAuth, { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
-const handler = NextAuth({
+const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -15,56 +15,65 @@ const handler = NextAuth({
         }
 
         try {
-          // TODO: Replace with actual API call to backend
           const response = await fetch('http://backend:8000/api/auth/login', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
+              'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: JSON.stringify({
-              email: credentials.email,
+            body: new URLSearchParams({
+              username: credentials.email,
               password: credentials.password,
             }),
           });
 
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Login failed:', errorText);
+            throw new Error(errorText);
+          }
+
           const data = await response.json();
 
-          if (response.ok && data) {
+          if (data.access_token) {
             return {
-              id: data.id,
-              email: data.email,
-              role: data.role,
+              id: credentials.email,
+              email: credentials.email,
+              accessToken: data.access_token,
             };
           }
 
           return null;
         } catch (error) {
           console.error('Auth error:', error);
-          return null;
+          throw error;
         }
       },
     }),
   ],
-  pages: {
-    signIn: '/admin/auth/login',
-  },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
-        token.role = user.role;
+        token.accessToken = user.accessToken;
+        token.email = user.email;
       }
       return token;
     },
     async session({ session, token }) {
-      if (session?.user) {
-        (session.user as any).role = token.role;
+      if (token) {
+        session.accessToken = token.accessToken;
+        if (session.user) {
+          session.user.email = token.email as string;
+        }
       }
       return session;
     },
   },
-  session: {
-    strategy: 'jwt',
+  pages: {
+    signIn: '/admin/auth/login',
   },
-})
+  debug: true,
+};
 
-export { handler as GET, handler as POST } 
+const handler = NextAuth(authOptions);
+
+export { handler as GET, handler as POST }; 

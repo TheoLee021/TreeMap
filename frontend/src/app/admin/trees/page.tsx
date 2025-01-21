@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import api from '@/lib/api';
+import CreateTreeForm from './components/CreateTreeForm';
 
 interface Tree {
   id: number;
@@ -16,14 +17,22 @@ interface Tree {
 export default function TreesManagement() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
+  const [showCreateForm, setShowCreateForm] = useState(false);
   
-  const { data, error, isLoading } = useSWR<{ items: Tree[] }>(
-    `/trees/?skip=${(page - 1) * pageSize}&limit=${pageSize}`,
+  const { data, error, isLoading, mutate } = useSWR<Tree[]>(
+    `/api/trees/?skip=${(page - 1) * pageSize}&limit=${pageSize}`,
     api.get
   );
 
   if (error) return <div>Failed to load trees</div>;
   if (isLoading) return <div>Loading...</div>;
+
+  const trees = Array.isArray(data) ? data : [];
+
+  const handleCreateSuccess = () => {
+    setShowCreateForm(false);
+    mutate(); // 목록 새로고침
+  };
 
   return (
     <div className="space-y-6">
@@ -31,11 +40,33 @@ export default function TreesManagement() {
         <h1 className="text-2xl font-semibold text-gray-900">Trees Management</h1>
         <button
           className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
-          onClick={() => {/* TODO: Implement new tree creation */}}
+          onClick={() => setShowCreateForm(true)}
         >
           Add New Tree
         </button>
       </div>
+
+      {showCreateForm && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Create New Tree</h2>
+                <button
+                  onClick={() => setShowCreateForm(false)}
+                  className="text-gray-400 hover:text-gray-500"
+                >
+                  ✕
+                </button>
+              </div>
+              <CreateTreeForm
+                onSuccess={handleCreateSuccess}
+                onCancel={() => setShowCreateForm(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Trees Table */}
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
@@ -63,7 +94,7 @@ export default function TreesManagement() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {data?.items.map((tree) => (
+            {trees.map((tree) => (
               <tr key={tree.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {tree.tag_number}
@@ -111,7 +142,7 @@ export default function TreesManagement() {
         </button>
         <button
           className="px-4 py-2 border rounded-md disabled:opacity-50"
-          disabled={!data?.items.length}
+          disabled={!trees.length}
           onClick={() => setPage(page + 1)}
         >
           Next

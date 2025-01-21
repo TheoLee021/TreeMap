@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { redirect } from 'next/navigation';
+import { redirect, usePathname } from 'next/navigation';
 import Sidebar from './components/Sidebar';
 
 interface AdminLayoutProps {
@@ -12,6 +12,12 @@ interface AdminLayoutProps {
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { data: session, status } = useSession();
+  const pathname = usePathname();
+
+  // Skip authentication check for login page
+  if (pathname === '/admin/auth/login') {
+    return <>{children}</>;
+  }
 
   // Protect admin routes
   if (status === 'loading') {
