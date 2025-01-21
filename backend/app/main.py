@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .routes import trees
+from .routes import trees, auth
 from . import models
 from .database import engine
 from .websocket import router as websocket_router
@@ -23,7 +23,8 @@ async def init_db():
         await conn.run_sync(models.Base.metadata.create_all)
 
 # 라우터 추가
-app.include_router(trees.router)
+app.include_router(trees.router, prefix="/api/trees", tags=["trees"])
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(websocket_router)
 
 @app.get("/")

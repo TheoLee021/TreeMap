@@ -6,11 +6,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# 비동기 데이터베이스 URL (asyncpg 사용)
-ASYNC_DATABASE_URL = os.getenv(
+# 동기 데이터베이스 URL (Alembic 마이그레이션용)
+SQLALCHEMY_DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql+asyncpg://treeuser:treepassword@db:5432/treemap"
-).replace('postgresql://', 'postgresql+asyncpg://')
+    "postgresql://treeuser:treepassword@db:5432/treemap"
+)
+
+# 비동기 데이터베이스 URL (asyncpg 사용)
+ASYNC_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace('postgresql://', 'postgresql+asyncpg://')
 
 # 비동기 엔진 생성
 engine = create_async_engine(

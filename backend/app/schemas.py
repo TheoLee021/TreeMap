@@ -1,9 +1,11 @@
-from pydantic import BaseModel, validator, Field
+from pydantic import BaseModel, validator, Field, EmailStr
 from datetime import datetime
 from typing import Optional
 from shapely.geometry import Point, mapping
 import json
 from geoalchemy2.shape import to_shape
+from enum import Enum
+from .models import UserRole
 
 class GeoJSON(BaseModel):
     type: str
@@ -54,4 +56,39 @@ class Tree(TreeBase):
         orm_mode = True
         json_encoders = {
             datetime: lambda v: v.isoformat() if v else None
-        } 
+        }
+
+class UserRole(str, Enum):
+    ADMIN = "admin"
+    MANAGER = "manager"
+    USER = "user"
+
+class UserBase(BaseModel):
+    email: EmailStr
+    role: Optional[UserRole] = UserRole.USER
+    is_active: Optional[bool] = True
+
+class UserCreate(UserBase):
+    password: str
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class UserResponse(UserBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat() if v else None
+        }
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    email: Optional[str] = None 

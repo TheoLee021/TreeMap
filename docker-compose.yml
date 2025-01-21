@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   db:
     image: postgis/postgis:13-3.1
@@ -35,6 +37,8 @@ services:
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8000
       - NEXT_PUBLIC_WS_URL=ws://localhost:8000
+      - NEXTAUTH_SECRET=1234567890  # 실제 운영환경에서는 안전한 키 사용
+      - NEXTAUTH_URL=http://localhost:3000  # 개발환경 기준
     volumes:
       - ./frontend:/app
       - /app/node_modules

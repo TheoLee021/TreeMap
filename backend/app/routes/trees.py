@@ -9,7 +9,6 @@ import json
 import math
 
 router = APIRouter(
-    prefix="/trees",
     tags=["trees"]
 )
 
