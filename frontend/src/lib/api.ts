@@ -9,7 +9,7 @@ const api = axios.create({
 
 // Response interceptor for error handling
 api.interceptors.response.use(
-  (response) => response.data,
+  (response) => response,
   (error) => {
     if (error.response) {
       // Server responded with a status code outside the 2xx range
